@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Doggy Market Pro</title>
+  <title>Doggy Market Ultra</title>
+
+  <!-- Toast -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
   <style>
     body {
+      margin: 0;
       font-family: Arial;
       background: #0d1117;
       color: #e6edf3;
-      margin: 0;
     }
 
     header {
-      background: #161b22;
-      padding: 15px 30px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      padding: 15px 25px;
+      background: #161b22;
       border-bottom: 1px solid #30363d;
     }
 
-    h1 { color: #58a6ff; margin: 0; }
+    h1 { color: #58a6ff; }
 
     input {
       padding: 8px;
       border-radius: 6px;
       border: none;
-      width: 200px;
     }
 
     button {
@@ -37,33 +39,26 @@
     }
 
     .connect { background: #238636; }
-    .buy { background: #238636; }
-    .sell { background: #da3633; }
 
-    .container { padding: 30px; }
+    .container {
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
 
     .card {
       background: #161b22;
-      padding: 20px;
+      padding: 15px;
       border-radius: 10px;
       border: 1px solid #30363d;
-      margin-bottom: 20px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
+    .price { color: #58a6ff; }
 
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #30363d;
-    }
+    .buy { background: #238636; }
+    .sell { background: #da3633; }
 
-    th { color: #8b949e; }
-
-    .wallet { color: #58a6ff; }
   </style>
 </head>
 
@@ -72,90 +67,93 @@
 <header>
   <h1>🐶 Doggy Market</h1>
   <div>
-    <input type="text" id="search" placeholder="Search token..." onkeyup="filterTokens()">
+    <input id="search" placeholder="Search..." onkeyup="filterTokens()">
     <button class="connect" onclick="connectWallet()">Connect</button>
   </div>
 </header>
 
-<div class="container">
-
-  <div class="card">
-    <p id="wallet" class="wallet">Wallet not connected</p>
-  </div>
-
-  <div class="card">
-    <h2>DRC-20 Tokens</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Token</th>
-          <th>Price (DOGE)</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="table"></tbody>
-    </table>
-  </div>
-
+<div style="padding:15px;">
+  <p id="wallet">Wallet not connected</p>
 </div>
 
+<div class="container" id="tokens"></div>
+
+<!-- Toast JS -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
 <script>
-  let wallet = null;
+let tokens = [
+  { name: "DOGEAI", price: 0.01 },
+  { name: "SHIBX", price: 0.005 },
+  { name: "MOONDOGE", price: 0.02 },
+  { name: "DOGEKING", price: 0.03 },
+  { name: "DOGEDEX", price: 0.015 }
+];
 
-  let tokens = [
-    { name: "DOGEAI", price: 0.01 },
-    { name: "SHIBX", price: 0.005 },
-    { name: "MOONDOGE", price: 0.02 },
-    { name: "DOGEMOON", price: 0.015 },
-    { name: "DOGEKING", price: 0.03 }
-  ];
+let wallet = null;
 
-  function connectWallet() {
-    wallet = "0xABC123...XYZ";
-    document.getElementById("wallet").innerText = "Connected: " + wallet;
+async function connectWallet() {
+  if (window.ethereum) {
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      wallet = accounts[0];
+      document.getElementById("wallet").innerText = "Connected: " + wallet;
+    } catch {
+      alert("Connection failed");
+    }
+  } else {
+    alert("Install MetaMask");
   }
+}
 
-  function buy(name) {
-    alert("🚀 Bought " + name);
-  }
+function toast(msg) {
+  Toastify({
+    text: msg,
+    duration: 2000,
+    gravity: "top",
+    position: "right"
+  }).showToast();
+}
 
-  function sell(name) {
-    alert("💰 Sold " + name);
-  }
+function buy(name) {
+  toast("🚀 Bought " + name);
+}
 
-  function loadTokens(list) {
-    let html = "";
-    list.forEach(t => {
-      html += `
-        <tr>
-          <td>${t.name}</td>
-          <td>${t.price.toFixed(4)}</td>
-          <td>
-            <button class="buy" onclick="buy('${t.name}')">Buy</button>
-            <button class="sell" onclick="sell('${t.name}')">Sell</button>
-          </td>
-        </tr>
-      `;
-    });
-    document.getElementById("table").innerHTML = html;
-  }
+function sell(name) {
+  toast("💰 Sold " + name);
+}
 
-  function filterTokens() {
-    let value = document.getElementById("search").value.toLowerCase();
-    let filtered = tokens.filter(t => t.name.toLowerCase().includes(value));
-    loadTokens(filtered);
-  }
+function render(list) {
+  let html = "";
+  list.forEach(t => {
+    html += `
+      <div class="card">
+        <h3>${t.name}</h3>
+        <p class="price">${t.price.toFixed(4)} DOGE</p>
+        <button class="buy" onclick="buy('${t.name}')">Buy</button>
+        <button class="sell" onclick="sell('${t.name}')">Sell</button>
+      </div>
+    `;
+  });
+  document.getElementById("tokens").innerHTML = html;
+}
 
-  // Fake live price update
-  setInterval(() => {
-    tokens = tokens.map(t => ({
-      ...t,
-      price: t.price + (Math.random() - 0.5) * 0.002
-    }));
-    filterTokens();
-  }, 2000);
+function filterTokens() {
+  let val = document.getElementById("search").value.toLowerCase();
+  let filtered = tokens.filter(t => t.name.toLowerCase().includes(val));
+  render(filtered);
+}
 
-  loadTokens(tokens);
+// Fake live price updates
+setInterval(() => {
+  tokens = tokens.map(t => ({
+    ...t,
+    price: t.price + (Math.random() - 0.5) * 0.002
+  }));
+  filterTokens();
+}, 2000);
+
+render(tokens);
 </script>
 
 </body>
