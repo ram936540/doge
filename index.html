@@ -3,62 +3,20 @@
 <head>
   <title>Doggy Market Ultra</title>
 
-  <!-- Toast -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
   <style>
-    body {
-      margin: 0;
-      font-family: Arial;
-      background: #0d1117;
-      color: #e6edf3;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      padding: 15px 25px;
-      background: #161b22;
-      border-bottom: 1px solid #30363d;
-    }
-
-    h1 { color: #58a6ff; }
-
-    input {
-      padding: 8px;
-      border-radius: 6px;
-      border: none;
-    }
-
-    button {
-      padding: 8px 15px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      color: white;
-    }
-
-    .connect { background: #238636; }
-
-    .container {
-      padding: 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 20px;
-    }
-
-    .card {
-      background: #161b22;
-      padding: 15px;
-      border-radius: 10px;
-      border: 1px solid #30363d;
-    }
-
-    .price { color: #58a6ff; }
-
-    .buy { background: #238636; }
-    .sell { background: #da3633; }
-
+    body { margin:0; font-family:Arial; background:#0d1117; color:#e6edf3; }
+    header { display:flex; justify-content:space-between; padding:15px 25px; background:#161b22; border-bottom:1px solid #30363d; }
+    h1 { color:#58a6ff; }
+    input { padding:8px; border-radius:6px; border:none; margin:5px; }
+    button { padding:8px 15px; border:none; border-radius:6px; cursor:pointer; color:white; }
+    .connect { background:#238636; }
+    .buy { background:#238636; }
+    .sell { background:#da3633; }
+    .container { padding:20px; display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:20px; }
+    .card { background:#161b22; padding:15px; border-radius:10px; border:1px solid #30363d; }
+    .price { color:#58a6ff; }
   </style>
 </head>
 
@@ -68,61 +26,79 @@
   <h1>🐶 Doggy Market</h1>
   <div>
     <input id="search" placeholder="Search..." onkeyup="filterTokens()">
-    <button class="connect" onclick="connectWallet()">Connect</button>
+    <button class="connect" onclick="connectMetaMask()">MetaMask</button>
   </div>
 </header>
 
 <div style="padding:15px;">
   <p id="wallet">Wallet not connected</p>
+
+  <h3>Connect MyDoge Wallet (Enter Address)</h3>
+  <input id="dogeWallet" placeholder="Enter MyDoge address">
+  <button onclick="connectDoge()">Connect MyDoge</button>
 </div>
 
 <div class="container" id="tokens"></div>
 
-<!-- Toast JS -->
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
 <script>
 let tokens = [
   { name: "DOGEAI", price: 0.01 },
   { name: "SHIBX", price: 0.005 },
-  { name: "MOONDOGE", price: 0.02 },
-  { name: "DOGEKING", price: 0.03 },
-  { name: "DOGEDEX", price: 0.015 }
+  { name: "MOONDOGE", price: 0.02 }
 ];
 
-let wallet = null;
+let ethWallet = null;
+let dogeWallet = null;
 
-async function connectWallet() {
+// MetaMask connect
+async function connectMetaMask() {
   if (window.ethereum) {
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      wallet = accounts[0];
-      document.getElementById("wallet").innerText = "Connected: " + wallet;
-    } catch {
-      alert("Connection failed");
-    }
+    let acc = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    ethWallet = acc[0];
+    document.getElementById("wallet").innerText = "ETH: " + ethWallet;
   } else {
     alert("Install MetaMask");
   }
 }
 
+// MyDoge connect (manual)
+function connectDoge() {
+  dogeWallet = document.getElementById("dogeWallet").value;
+  document.getElementById("wallet").innerText += " | DOGE: " + dogeWallet;
+}
+
+// Toast
 function toast(msg) {
-  Toastify({
-    text: msg,
-    duration: 2000,
-    gravity: "top",
-    position: "right"
-  }).showToast();
+  Toastify({ text: msg, duration: 2000, gravity: "top", position: "right" }).showToast();
 }
 
-function buy(name) {
-  toast("🚀 Bought " + name);
+// BUY logic (realistic flow)
+function buy(name, price) {
+  if (!dogeWallet) {
+    alert("Enter MyDoge wallet first");
+    return;
+  }
+
+  const receiver = "YOUR_DOGE_RECEIVING_ADDRESS";
+
+  toast("Send " + price + " DOGE to:");
+  alert(
+    "🚨 PAYMENT STEP 🚨\n\n" +
+    "Open MyDoge Wallet\n" +
+    "Send " + price + " DOGE to:\n\n" +
+    receiver +
+    "\n\nThen click confirm"
+  );
 }
 
+// SELL (demo)
 function sell(name) {
-  toast("💰 Sold " + name);
+  toast("Sell request placed for " + name);
 }
 
+// render
 function render(list) {
   let html = "";
   list.forEach(t => {
@@ -130,7 +106,7 @@ function render(list) {
       <div class="card">
         <h3>${t.name}</h3>
         <p class="price">${t.price.toFixed(4)} DOGE</p>
-        <button class="buy" onclick="buy('${t.name}')">Buy</button>
+        <button class="buy" onclick="buy('${t.name}', ${t.price})">Buy</button>
         <button class="sell" onclick="sell('${t.name}')">Sell</button>
       </div>
     `;
@@ -144,7 +120,7 @@ function filterTokens() {
   render(filtered);
 }
 
-// Fake live price updates
+// fake price update
 setInterval(() => {
   tokens = tokens.map(t => ({
     ...t,
