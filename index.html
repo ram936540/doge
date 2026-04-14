@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Doggy Market</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background:#111; color:#fff; }
+    h1 { color: #00ffcc; }
+    button { padding: 5px 10px; margin: 2px; cursor: pointer; }
+    table { background:#222; color:#fff; border-collapse: collapse; }
+    td, th { padding:10px; }
+  </style>
+</head>
+
+<body>
+
+<h1>🐶 Doggy Market Clone</h1>
+
+<button onclick="connectWallet()">Connect Wallet</button>
+<p id="wallet"></p>
+
+<h2>DRC-20 Tokens</h2>
+
+<table border="1">
+  <thead>
+    <tr>
+      <th>Token</th>
+      <th>Price (DOGE)</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody id="table"></tbody>
+</table>
+
+<script>
+let wallet = null;
+
+const tokens = [
+  { name: "DOGEAI", price: 0.01 },
+  { name: "SHIBX", price: 0.005 },
+  { name: "MOONDOGE", price: 0.02 }
+];
+
+function connectWallet() {
+  wallet = "0xABC123...XYZ";
+  document.getElementById("wallet").innerText = "Connected: " + wallet;
+}
+
+function buy(name) {
+  alert("Bought " + name + " 🚀");
+}
+
+function sell(name) {
+  alert("Sold " + name + " 💰");
+}
+
+function loadTokens() {
+  let html = "";
+
+  tokens.forEach(t => {
+    html += 
+      <tr>
+        <td>${t.name}</td>
+        <td>${t.price}</td>
+        <td>
+          <button onclick="buy('${t.name}')">Buy</button>
+          <button onclick="sell('${t.name}')">Sell</button>
+        </td>
+      </tr>
+    ;
+  });
+
+  document.getElementById("table").innerHTML = html;
+}
+
+loadTokens();
+</script>
+
+</body>
+</html>
